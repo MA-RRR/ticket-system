@@ -1,6 +1,6 @@
 # Ticket System
 
-学习go的第一天
+学习go的第二天
 简易工单管理服务（Go + Gin + GORM + MySQL）。
 
 ## 项目概述
