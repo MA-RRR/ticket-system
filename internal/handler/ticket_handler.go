@@ -1,8 +1,11 @@
 package handler
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
+	"ticket-system/internal/model"
+	"ticket-system/internal/pkg/errcode"
 	"ticket-system/internal/service"
 
 	"github.com/gin-gonic/gin"
@@ -56,7 +59,7 @@ func (h *TicketHandler) GetById(c *gin.Context) {
 func (h *TicketHandler) UpdateStatus(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
 	var req struct {
-		Status string `json:"status"`
+		Status model.TicketStatus `json:"status"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -64,6 +67,18 @@ func (h *TicketHandler) UpdateStatus(c *gin.Context) {
 	}
 	err := h.svc.UpdateStatus(uint(id), req.Status)
 	if err != nil {
+		if errors.Is(err, errcode.ErrInvalidStatusTransfer) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		if errors.Is(err, errcode.ErrTicketNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			return
+		}
+		if errors.Is(err, errcode.ErrConcurrentUpdate) {
+			c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
+			return
+		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
