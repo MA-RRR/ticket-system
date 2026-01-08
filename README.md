@@ -1,5 +1,6 @@
 # Ticket System
 
+学习go的第一天
 简易工单管理服务（Go + Gin + GORM + MySQL）。
 
 ## 项目概述
@@ -79,36 +80,4 @@ curl -X PUT http://localhost:8080/tickets/1/status -H "Content-Type: application
 ## 数据库迁移
 程序启动时会调用 `db.AutoMigrate(&model.Ticket{})` 自动创建/更新表结构；无需手动迁移。
 
-## 可选：Docker Compose（MySQL）
-在项目根目录可以使用如下 `docker-compose.yml` 快速起库：
 
-```yaml
-version: '3.8'
-services:
-  db:
-    image: mysql:8.0
-    environment:
-      MYSQL_ROOT_PASSWORD: 123456
-      MYSQL_DATABASE: ticket
-    ports:
-      - "3306:3306"
-    volumes:
-      - db-data:/var/lib/mysql
-
-volumes:
-  db-data:
-```
-
-启动：
-
-```powershell
-docker-compose up -d
-```
-
-## 进一步改进建议
-- 将数据库 DSN 改为使用环境变量或配置文件。
-- 增加单元测试与集成测试。
-- 提供 OpenAPI/Swagger 文档以便前端或其他服务调用。
-
----
-若需我把 `docker-compose.yml` 添加到仓库、或把 DSN 改为从环境变量读取，我可以继续实现。 
