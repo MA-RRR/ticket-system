@@ -19,11 +19,20 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to connect database: %v", err)
 	}
-	db.AutoMigrate(&model.Ticket{})
+	db.AutoMigrate(&model.Ticket{}, &model.User{}, &model.AuditLog{})
 
 	ticketRepo := repository.NewTicketRepository(db)
 	ticketService := service.NewTicketService(ticketRepo)
 	ticketHandler := handler.NewTicketHandler(ticketService)
-	r := router.SetUpRouter(ticketHandler)
+
+	auditRepo := repository.NewAuditRepository(db)
+	auditService := service.NewAuditService(auditRepo)
+	ticketService.SetAuditService(auditService)
+
+	userRepo := repository.NewUserRepository(db)
+	userService := service.NewUserService(userRepo)
+	userHandler := handler.NewUserHandler(userService)
+
+	r := router.SetUpRouter(ticketHandler, userHandler)
 	r.Run(":8080")
 }

@@ -58,6 +58,7 @@ func (h *TicketHandler) GetById(c *gin.Context) {
 
 func (h *TicketHandler) UpdateStatus(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
+	userID, _ := c.Get("user_id")
 	var req struct {
 		Status model.TicketStatus `json:"status"`
 	}
@@ -65,7 +66,7 @@ func (h *TicketHandler) UpdateStatus(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	err := h.svc.UpdateStatus(uint(id), req.Status)
+	err := h.svc.UpdateStatus(uint(id), req.Status, userID.(uint))
 	if err != nil {
 		if errors.Is(err, errcode.ErrInvalidStatusTransfer) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -83,4 +84,30 @@ func (h *TicketHandler) UpdateStatus(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Ticket status updated successfully"})
+}
+
+func (h *TicketHandler) Assign(c *gin.Context) {
+	id, _ := strconv.Atoi(c.Param("id"))
+	userID, _ := c.Get("user_id")
+	var req struct {
+		AssignedTo uint `json:"assigned_to"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	err := h.svc.Assign(uint(id), req.AssignedTo, userID.(uint))
+	if err != nil {
+		if errors.Is(err, errcode.ErrTicketNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			return
+		}
+		if errors.Is(err, errcode.ErrInvalidParam) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Ticket assigned successfully"})
 }

@@ -61,3 +61,14 @@ func (r *TicketRepository) UpdateStatus(id uint, status model.TicketStatus) erro
 		return nil
 	})
 }
+
+func (r *TicketRepository) Assign(id uint, userId uint) error {
+	result := r.db.Model(&model.Ticket{}).Where("id = ?", id).Update("assigned_to", userId)
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return errcode.ErrTicketNotFound
+	}
+	return nil
+}
